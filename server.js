@@ -65,7 +65,7 @@ app.post("/create-poll", async (req, res) => {
       createdBy: user.username,
       userId: user._id   // ✅ SAVE USER ID
     });
-s
+
     res.json(poll);
 
   } catch (err) {

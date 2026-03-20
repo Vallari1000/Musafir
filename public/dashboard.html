@@ -15,25 +15,49 @@
     <h3>Create Poll</h3>
 
     <input id="question" placeholder="Question">
-    <input id="opt1" placeholder="Option 1">
-    <input id="opt2" placeholder="Option 2">
+    <div id="optionsBox">
+       <input class="option" placeholder="Option 1">
+       <input class="option" placeholder="Option 2">
+    </div>
+
+    <button onclick="addOption()">+ Add Option</button>
 
     <button onclick="createPoll()">Create</button>
-  </div>
+    </div>
 
-  <div class="box">
-    <h3>Polls</h3>
+    <div class="box">
+      <h3>Polls</h3>
     <div id="polls"></div>
-  </div>
+    </div>
 
-</div>
-
+    </div>
+    
 <script>
 const pollsDiv = document.getElementById("polls");
+
+// ✅ ADD OPTION FUNCTION (MOVED INSIDE SCRIPT)
+function addOption(){
+  const box = document.getElementById("optionsBox");
+
+  const input = document.createElement("input");
+  input.className = "option";
+  input.placeholder = "New Option";
+
+  box.appendChild(input);
+}
 
 // CREATE POLL
 async function createPoll(){
   const token = localStorage.getItem("token");
+
+  const optionInputs = document.querySelectorAll(".option");
+  let options = [];
+
+  optionInputs.forEach(input => {
+    if(input.value.trim() !== ""){
+      options.push(input.value);
+    }
+  });
 
   await fetch("/create-poll",{
     method:"POST",
@@ -43,13 +67,15 @@ async function createPoll(){
     },
     body: JSON.stringify({
       question: question.value,
-      options: [opt1.value, opt2.value]
+      options: options   // ✅ dynamic options
     })
   });
 
   question.value="";
-  opt1.value="";
-  opt2.value="";
+  document.getElementById("optionsBox").innerHTML = `
+    <input class="option" placeholder="Option 1">
+    <input class="option" placeholder="Option 2">
+  `;
 
   loadPolls();
 }
