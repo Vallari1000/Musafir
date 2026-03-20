@@ -20,7 +20,8 @@ const User = mongoose.model("User", {
 
 const Poll = mongoose.model("Poll", {
   question: String,
-  options: [{ text: String, votes: Number }]
+  options: [{ text: String, votes: Number }],
+  createdBy: String
 });
 
 const SECRET = "secret123";
@@ -51,12 +52,26 @@ app.post("/login", async (req, res) => {
 app.post("/create-poll", async (req, res) => {
   const { question, options } = req.body;
 
-  const poll = await Poll.create({
-    question,
-    options: options.map(o => ({ text: o, votes: 0 }))
-  });
+  try {
+    const token = req.headers.authorization;
 
-  res.json(poll);
+    //console.log("TOKEN RECEIVED:", token); // ✅ ADD HERE
+
+    const decoded = jwt.verify(token, "secret123");
+    const user = await User.findById(decoded.id);
+
+    const poll = await Poll.create({
+      question,
+      options: options.map(o => ({ text: o, votes: 0 })),
+      createdBy: user.username
+    });
+s
+    res.json(poll);
+
+  } catch (err) {
+    console.log("ERROR:", err); // optional debug
+    res.status(401).send("Unauthorized");
+  }
 });
 
 // GET POLLS
@@ -70,23 +85,17 @@ app.post("/vote", async (req, res) => {
   const { pollId, optionIndex } = req.body;
 
   const poll = await Poll.findById(pollId);
-  if (!poll) return res.status(404).send("Poll not found");
-
   poll.options[optionIndex].votes += 1;
   await poll.save();
 
   res.json(poll);
 });
 
-
-
-// GET USER PROFILE
+// PROFILE
 app.get("/profile", async (req, res) => {
   try {
     const token = req.headers.authorization;
-
-    const decoded = jwt.verify(token, "secret123");
-
+    const decoded = jwt.verify(token, SECRET);
     const user = await User.findById(decoded.id);
 
     res.json({
@@ -94,30 +103,15 @@ app.get("/profile", async (req, res) => {
       email: user.email
     });
 
-  } catch (err) {
+  } catch {
     res.status(401).send("Invalid token");
   }
 });
 
-// ✅ DELETE POLL (FULLY WORKING)
+// DELETE POLL
 app.delete("/delete-poll/:id", async (req, res) => {
-  console.log("DELETE REQUEST:", req.params.id);
-
-  try {
-    const deleted = await Poll.findByIdAndDelete(req.params.id);
-
-    if (!deleted) {
-      console.log("Poll NOT found");
-      return res.status(404).json({ message: "Poll not found" });
-    }
-
-    console.log("Poll deleted:", deleted);
-    res.json({ message: "Poll deleted successfully" });
-
-  } catch (err) {
-    console.log("ERROR:", err);
-    res.status(500).json({ message: "Error deleting poll" });
-  }
+  await Poll.findByIdAndDelete(req.params.id);
+  res.json({ message: "Poll deleted" });
 });
 
 app.listen(3000, () => console.log("Server running on http://localhost:3000"));

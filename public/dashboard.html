@@ -3,10 +3,10 @@
 <head>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h1 class="title"> Dashboard</h1>
-
+<h1 class="title">Dashboard</h1>
 <h2 id="welcomeUser"></h2>
 
 <div class="grid">
@@ -31,14 +31,19 @@
 <script>
 const pollsDiv = document.getElementById("polls");
 
-// CREATE
+// CREATE POLL
 async function createPoll(){
+  const token = localStorage.getItem("token");
+
   await fetch("/create-poll",{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization": token
+    },
     body: JSON.stringify({
-      question:question.value,
-      options:[opt1.value,opt2.value]
+      question: question.value,
+      options: [opt1.value, opt2.value]
     })
   });
 
@@ -49,7 +54,7 @@ async function createPoll(){
   loadPolls();
 }
 
-// LOAD
+// LOAD POLLS
 async function loadPolls(){
   const res = await fetch("/polls");
   const polls = await res.json();
@@ -57,7 +62,11 @@ async function loadPolls(){
   pollsDiv.innerHTML="";
 
   polls.forEach(p=>{
-    let html = `<div class="poll"><h4>${p.question}</h4>`;
+    let html = `
+      <div class="poll">
+        <h4>${p.question}</h4>
+        <p><b>Created by:</b> ${p.createdBy || "Unknown"}</p>
+    `;
 
     p.options.forEach((o,i)=>{
       html += `
@@ -67,7 +76,6 @@ async function loadPolls(){
       `;
     });
 
-    // ✅ DELETE BUTTON (IMPORTANT)
     html += `
       <br>
       <button onclick="deletePoll('${p._id}')" class="delete">
@@ -95,39 +103,24 @@ async function vote(id,index){
   loadPolls();
 }
 
-// DELETE (FULLY DEBUGGED)
+// DELETE
 async function deletePoll(id){
-  console.log("Deleting:", id);
-
   const confirmDelete = confirm("Delete this poll?");
   if(!confirmDelete) return;
 
-  const res = await fetch(`/delete-poll/${id}`,{
+  await fetch(`/delete-poll/${id}`,{
     method:"DELETE"
   });
-
-  const data = await res.json();
-  console.log(data);
-
-  alert(data.message);
 
   loadPolls();
 }
 
-loadPolls();
-</script>
-
-<script>
-
-
-// ✅ ADD THIS HERE
+// LOAD PROFILE
 async function loadProfile(){
   const token = localStorage.getItem("token");
 
   const res = await fetch("/profile", {
-    headers: {
-      "Authorization": token
-    }
+    headers: { "Authorization": token }
   });
 
   const data = await res.json();
@@ -136,10 +129,9 @@ async function loadProfile(){
     "Welcome, " + data.username;
 }
 
-// CALL IT
+// INIT
 loadPolls();
 loadProfile();
-
 </script>
 
 </body>
