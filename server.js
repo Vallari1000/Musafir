@@ -78,6 +78,27 @@ app.post("/vote", async (req, res) => {
   res.json(poll);
 });
 
+
+
+// GET USER PROFILE
+app.get("/profile", async (req, res) => {
+  try {
+    const token = req.headers.authorization;
+
+    const decoded = jwt.verify(token, "secret123");
+
+    const user = await User.findById(decoded.id);
+
+    res.json({
+      username: user.username,
+      email: user.email
+    });
+
+  } catch (err) {
+    res.status(401).send("Invalid token");
+  }
+});
+
 // ✅ DELETE POLL (FULLY WORKING)
 app.delete("/delete-poll/:id", async (req, res) => {
   console.log("DELETE REQUEST:", req.params.id);

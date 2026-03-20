@@ -44,6 +44,12 @@ input {
   margin-top:20px;
 }
 
+#welcomeUser {
+  text-align:center;
+  margin-top:20px;
+  font-family: "Playfair Display", serif;
+  size: 30cap;
+}
 .grid {
   display:flex;
   justify-content:center;

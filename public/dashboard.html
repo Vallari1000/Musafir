@@ -5,7 +5,9 @@
 </head>
 <body>
 
-<h1 class="title">CampusConnect Dashboard</h1>
+<h1 class="title"> Dashboard</h1>
+
+<h2 id="welcomeUser"></h2>
 
 <div class="grid">
 
@@ -113,6 +115,31 @@ async function deletePoll(id){
 }
 
 loadPolls();
+</script>
+
+<script>
+
+
+// ✅ ADD THIS HERE
+async function loadProfile(){
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("/profile", {
+    headers: {
+      "Authorization": token
+    }
+  });
+
+  const data = await res.json();
+
+  document.getElementById("welcomeUser").innerText =
+    "Welcome, " + data.username;
+}
+
+// CALL IT
+loadPolls();
+loadProfile();
+
 </script>
 
 </body>
